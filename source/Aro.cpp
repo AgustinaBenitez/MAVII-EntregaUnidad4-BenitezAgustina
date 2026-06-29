@@ -24,35 +24,10 @@ Aro::Aro(b2World* mundo, b2Vec2 posicion, float escala, bool empiezaSubiendo)
     // Sugerencia de Gemini: Anulo la gravedad para que le motor no tenga que luchar contra ella
     cuerpo->SetGravityScale(0.0f);
 
-
-
-
-
-    // Defino el alto del aro (aprox el 20% de la imagen)
-    //float altoAro = alto * 0.2f;
-
-    // Calculo el centro del aro empujándolo hacia el techo de mi rectángulo
-    //b2Vec2 centroAro(0.0f, -alto / 2.0f + altoAro / 2.0f);
-
-    // Creo la forma geométrica pasándole el centro desplazado
-    //b2PolygonShape formaAro;
-    //formaAro.SetAsBox(ancho / 2.0f, altoAro / 2.0f, centroAro, 0.0f);
-
-    // Le doy poca densidad para que la pelota frene al chocar
-    //b2FixtureDef fixAro;
-    //fixAro.shape = &formaAro;
-    //fixAro.density = 1.0f;
-    //fixAro.friction = 0.5f;
-    //fixAro.restitution = 0.2f;
-    //cuerpo->CreateFixture(&fixAro);
-
-
-
-
-    // 1. EL TABLERO (Colisión física vertical a la derecha)
+    // Tablero (Colisión física vertical a la derecha)
     float anchoTablero = ancho * 0.15f;
-    float altoTablero = alto * 0.9f;
-    b2Vec2 centroTablero(ancho * 0.35f, 0.0f); // Desplazado a la derecha
+    float altoTablero = alto * 0.5f;
+    b2Vec2 centroTablero(ancho * -0.10f, -30.0f);
 
     b2PolygonShape formaTablero;
     formaTablero.SetAsBox(anchoTablero / 2.0f, altoTablero / 2.0f, centroTablero, 0.0f);
@@ -64,23 +39,18 @@ Aro::Aro(b2World* mundo, b2Vec2 posicion, float escala, bool empiezaSubiendo)
     fixTablero.restitution = 0.2f;
     cuerpo->CreateFixture(&fixTablero);
 
-    // 2. EL ARO / RED (Sensor chato a la izquierda)
-    float anchoSensor = ancho * 0.4f;
+    // El aro (Sensor chato)
+    float anchoSensor = ancho * 0.25f;
     float altoSensor = 10.0f;
-    b2Vec2 centroSensor(-ancho * 0.1f, alto * 0.1f); // Desplazado a la izquierda
+    b2Vec2 centroSensor(-ancho * 0.35f, alto * 0.1f); // Desplazado a la izquierda
 
     b2PolygonShape formaSensor;
     formaSensor.SetAsBox(anchoSensor / 2.0f, altoSensor / 2.0f, centroSensor, 0.0f);
 
     b2FixtureDef fixSensor;
     fixSensor.shape = &formaSensor;
-    fixSensor.isSensor = true; // LA CLAVE: No genera rebote físico
+    fixSensor.isSensor = true;
     cuerpo->CreateFixture(&fixSensor);
-
-
-
-
-
 
     // Creo un ancla estática invisible en la misma posición de origen
     b2BodyDef defAncla;
@@ -172,14 +142,15 @@ void Aro::DibujarDebug() {
 
     b2Vec2 pos = cuerpo->GetPosition();
 
-    // Tablero (Rojo)
     float anchoTablero = ancho * 0.15f;
-    float altoTablero = alto * 0.9f;
-    DrawRectangleLines(pos.x + (ancho * 0.35f) - (anchoTablero / 2), pos.y - (altoTablero / 2), anchoTablero, altoTablero, RED);
+    float altoTablero = alto * 0.5f;
+    // Acá también cambiamos el multiplicador a 0.10f
+    DrawRectangleLines(pos.x + (ancho * -0.10f) - (anchoTablero / 2), pos.y - 30.0f - (altoTablero / 2), anchoTablero, altoTablero, RED);
 
     // Sensor Red (Naranja)
-    float anchoSensor = ancho * 0.4f;
+    float anchoSensor = ancho * 0.25f;
     float altoSensor = 10.0f;
-    DrawRectangleLines(pos.x - (ancho * 0.1f) - (anchoSensor / 2), pos.y + (alto * 0.1f) - (altoSensor / 2), anchoSensor, altoSensor, ORANGE);
+    // Y acá cambiamos a 0.35f
+    DrawRectangleLines(pos.x - (ancho * 0.35f) - (anchoSensor / 2), pos.y + (alto * 0.1f) - (altoSensor / 2), anchoSensor, altoSensor, ORANGE);
 
 }

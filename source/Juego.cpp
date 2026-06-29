@@ -49,7 +49,13 @@ void EscuchadorColisiones::BeginContact(b2Contact* contacto) {
         }
 
         if (tocoSensor) {
-            pelota->MarcarAnotacion();
+            // Obtengo la velocidad lineal de la pelota en el momento del impacto
+            b2Vec2 velPelota = pelota->GetCuerpo()->GetLinearVelocity();
+
+            // Si la velocidad en Y es positiva, significa que viene cayendo de arriba hacia abajo
+            if (velPelota.y > 0.0f) {
+                pelota->MarcarAnotacion();
+            }
         }
     }
 
@@ -198,20 +204,6 @@ void Juego::Actualizar() {
 
     }
 
-
-    // CHEQUEO DE FINALIZACIÓN
-
-        //b2Vec2 posPelota = pelotaPrincipal->GetCuerpo()->GetPosition();
-
-        // Obtengo la velocidad lineal de la pelota para saber hacia dónde viaja
-        //b2Vec2 velPelota = pelotaPrincipal->GetCuerpo()->GetLinearVelocity();
-
-        // Si se termina el tiempo
-        //if (tiempo == 0) {
-        //    estadoActual = TERMINADO;
-        //}
-
-
     // Para reiniciar juego
     if (IsKeyPressed(KEY_R)) {
         Reiniciar();
@@ -289,9 +281,9 @@ void Juego::Renderizar() {
             const char* obj2 = "de pelotas posibles";
             const char* obj3 = "ANTES QUE SE ACABE EL TIEMPO!";
 
-            DrawText(obj1, 1038 - MeasureText(obj1, 20), 20, 20, LIGHTGRAY);
-            DrawText(obj2, 1038 - MeasureText(obj2, 20), 45, 20, LIGHTGRAY);
-            DrawText(obj3, 1038 - MeasureText(obj3, 20), 70, 20, YELLOW);
+            DrawText(obj1, 1038 - MeasureText(obj1, 20), 80, 20, LIGHTGRAY);
+            DrawText(obj2, 1038 - MeasureText(obj2, 20), 110, 20, LIGHTGRAY);
+            DrawText(obj3, 1038 - MeasureText(obj3, 20), 140, 20, YELLOW);
 
             // Informo puntaje
             const char* textoPuntaje = TextFormat("PELOTAS ENCESTADAS: %d", puntaje);
@@ -309,16 +301,27 @@ void Juego::Renderizar() {
             if (tirador && !tirador->YaDisparo()) {
                 float porcentaje = tirador->GetPorcentajeFuerza();
 
-                DrawText("POTENCIA:", 20, 225, 15, RED);
+                // Tomo la posición del cuerpo físico del tirador
+                b2Vec2 pos = tirador->GetCuerpo()->GetPosition();
+
+                // Calculo el centro de la barra restando la mitad de su ancho (100)
+                int posX = pos.x - 100;
+                // La subo 130 píxeles para que no le tape la cara
+                int posY = pos.y - 180;
+
+                // Sugerencia de Gemini: Le pongo un truco de sombra al texto para que no se pierda con el público
+                DrawText("POTENCIA:", posX + 2, posY - 30 + 2, 25, BLACK);
+                DrawText("POTENCIA:", posX, posY - 30, 25, PINK);
 
                 // Rectángulo gris de fondo (el envase)
-                DrawRectangle(20, 245, 200, 20, LIGHTGRAY);
+                DrawRectangle(posX, posY, 200, 20, LIGHTGRAY);
 
                 // Rectángulo rojo que crece multiplicando el ancho total (200) por el porcentaje (0.0 a 1.0)
-                DrawRectangle(20, 245, 200 * porcentaje, 20, RED);
+                DrawRectangle(posX, posY, 200 * porcentaje, 20, RED);
 
                 // Borde negro para que quede prolijo
-                DrawRectangleLines(20, 245, 200, 20, BLACK);
+                DrawRectangleLines(posX, posY, 200, 20, BLACK);
+
             }
 
         }
