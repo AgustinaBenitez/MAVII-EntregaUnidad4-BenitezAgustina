@@ -8,8 +8,6 @@ EscuchadorColisiones::EscuchadorColisiones() {}
 void EscuchadorColisiones::BeginContact(b2Contact* contacto) {
 
     // Obtengo los cuerpos que chocaron
-    //b2Body* cuerpoA = contacto->GetFixtureA()->GetBody();
-    //b2Body* cuerpoB = contacto->GetFixtureB()->GetBody();
     b2Fixture* fixA = contacto->GetFixtureA();
     b2Fixture* fixB = contacto->GetFixtureB();
 
@@ -55,7 +53,7 @@ void EscuchadorColisiones::BeginContact(b2Contact* contacto) {
         }
     }
 
-    // 2. Si chocaron la Pelota y el Borde (Piso)
+    // Si chocaron la Pelota y el Borde (Piso)
     if (pelota != nullptr && piso != nullptr) {
         pelota->MarcarEnSuelo();
     }
@@ -85,9 +83,9 @@ void Juego::Iniciar() {
     texturaFondo = LoadTexture("assets/img/texturaFondo.png");
 
     // Cargo música de fondo
-    //musicaFondo = LoadMusicStream("assets/audio/musicaFondo.mp3");
-    //musicaFondo.looping = true;     // Para que se repita infinitamente
-    //PlayMusicStream(musicaFondo);   // Le doy Play solo acá (una sola vez)
+    musicaFondo = LoadMusicStream("assets/audio/musicaFondo.mp3");
+    musicaFondo.looping = true;     // Para que se repita infinitamente
+    PlayMusicStream(musicaFondo);   // Le doy Play solo acá (una sola vez)
 
     // Configuro el escuchador de colisiones
     escuchador = std::make_unique<EscuchadorColisiones>();
@@ -96,13 +94,35 @@ void Juego::Iniciar() {
     // Cargo todos los objetos
     Reiniciar();
 
+    // Fuerzo el estado a INICIO solo en la primera carga del programa
+    estadoActual = INICIO;
+
 }
 
 void Juego::Actualizar() {
 
-    //UpdateMusicStream(musicaFondo); // Obligatorio para que suene la música
+    UpdateMusicStream(musicaFondo); // Obligatorio para que suene la música
+
+    if (estadoActual == INICIO) {
+        if (IsKeyPressed(KEY_ENTER)) {
+            cronometro->Reiniciar(); // Para asegurar que los 2 minutos arranquen intactos
+            estadoActual = JUGANDO;
+        }
+    }
 
     if (estadoActual == JUGANDO) {
+
+        // Actualizo el segundero
+        cronometro->Actualizar();
+
+        // Si el tiempo llega a cero, se termina el juego
+        if (cronometro->SeAcaboElTiempo() && estadoActual == JUGANDO) {
+
+            estadoActual = TERMINADO;
+            //PlaySound(sonidoFin);
+            return;
+
+        }
 
         // Sugerencia de Gemini: En lugar de dar 1 paso grande de 1/60, le hacemos dar 10 mini-pasos de 1/600
         // Esto engaña a Box2D y multiplica por 10 su límite de velocidad tope
@@ -161,6 +181,11 @@ void Juego::Actualizar() {
                 // Le mato la velocidad horizontal (X = 0) para que caiga recta
                 b2Vec2 vel = pelotaPrincipal->GetCuerpo()->GetLinearVelocity();
                 pelotaPrincipal->GetCuerpo()->SetLinearVelocity(b2Vec2(0.0f, vel.y));
+            }
+
+            // Si la pelota se fue por la derecha de la pantalla habilito presionar N
+            if (pelotaPrincipal->GetCuerpo()->GetPosition().x > 1060.0f) {
+                puedeRecargar = true;
             }
 
             // Si tocó el suelo, habilito presionar N
@@ -222,49 +247,114 @@ void Juego::Renderizar() {
             tirador->Dibujar();
         }
 
-    // Carteles
+        // Carteles
         if (estadoActual == INICIO) {
 
-            DrawText("Entra en calor haciendo unos tiros libres antes del partido! Presiona ENTER cuando estes listo!", 130, 280, 30, RED);
+            // Rectángulo negro con 70% de opacidad para oscurecer el fondo
+            DrawRectangle(0, 0, 1058, 992, Fade(BLACK, 0.7f));
+
+            // Título principal
+            const char* tituloInicio = "FIEBRE DE BASKET";
+            int anchoTit = MeasureText(tituloInicio, 80);
+            DrawText(tituloInicio, (1058 - anchoTit) / 2, 300, 80, ORANGE);
+
+            // Textos de indicaciones divididos para que queden bien centrados
+            const char* linea1 = "Entra en calor haciendo unos tiros libres antes del partido!";
+            const char* linea2 = "Veamos cuantos logras encestar en 2 minutos!";
+            const char* linea3 = "Presiona ENTER cuando estes listo";
+
+            DrawText(linea1, (1058 - MeasureText(linea1, 30)) / 2, 450, 30, LIGHTGRAY);
+            DrawText(linea2, (1058 - MeasureText(linea2, 30)) / 2, 490, 30, LIGHTGRAY);
+            DrawText(linea3, (1058 - MeasureText(linea3, 30)) / 2, 600, 30, YELLOW);
 
         }
         else if (estadoActual == JUGANDO) {
 
-            DrawText("CONTROLES", 15, 50, 25, BLACK);
-            DrawText("ESP (mantener): Lanzar", 15, 80, 20, DARKGRAY);
-            DrawText("N: Nueva pelota", 15, 105, 20, DARKGRAY);
-            DrawText("R: Reiniciar", 15, 130, 20, DARKGRAY);
-            DrawText("I: Mostrar info", 15, 155, 20, DARKGRAY);
+            // Calculo minutos y segundos reales
+            int minutos = (int)cronometro->tiempoRestante / 60;
+            int segundos = (int)cronometro->tiempoRestante % 60;
 
-            DrawText("Encestá", 720, 50, 20, DARKGRAY);
-            DrawText("la mayor cantidad de pelotas", 720, 70, 20, DARKGRAY);
-            DrawText("ANTES QUE SE ACABE EL TIEMPO!", 720, 95, 25, DARKGREEN);
+            // Dibujo el tiempo en formato MM:SS
+            DrawText(TextFormat("TIEMPO: %02d:%02d", minutos, segundos), 20, 20, 40, WHITE);
 
-            DrawText(TextFormat("PUNTAJE: %d", puntaje), 450, 50, 40, ORANGE);
+            // Informo controles
+            DrawText("CONTROLES", 20, 80, 25, GREEN);
+            DrawText("Mantener y soltar ESP: Lanzar", 20, 110, 20, LIGHTGRAY);
+            DrawText("N: Nueva pelota", 20, 135, 20, LIGHTGRAY);
+            DrawText("R: Reiniciar", 20, 160, 20, LIGHTGRAY);
+            DrawText("I: Mostrar info", 20, 185, 20, LIGHTGRAY);
+
+            // Informo objetivo
+            const char* obj1 = "Encesta la mayor cantidad";
+            const char* obj2 = "de pelotas posibles";
+            const char* obj3 = "ANTES QUE SE ACABE EL TIEMPO!";
+
+            DrawText(obj1, 1038 - MeasureText(obj1, 20), 20, 20, LIGHTGRAY);
+            DrawText(obj2, 1038 - MeasureText(obj2, 20), 45, 20, LIGHTGRAY);
+            DrawText(obj3, 1038 - MeasureText(obj3, 20), 70, 20, YELLOW);
+
+            // Informo puntaje
+            const char* textoPuntaje = TextFormat("PELOTAS ENCESTADAS: %d", puntaje);
+            int anchoPuntaje = MeasureText(textoPuntaje, 40);
+            DrawText(textoPuntaje, (1058 - anchoPuntaje) / 2, 850, 40, YELLOW);
+
+            // Aviso al jugador que puede acceder a una nueva pelota
             if (puedeRecargar) {
-                DrawText("PRESIONA 'N' PARA NUEVA PELOTA", 450, 100, 20, BLUE);
+                const char* textoRecarga = "PRESIONA 'N' PARA NUEVA PELOTA";
+                int anchoRecarga = MeasureText(textoRecarga, 25);
+                DrawText(textoRecarga, (1058 - anchoRecarga) / 2, 900, 25, DARKPURPLE);
             }
 
             // Dibujo la barra de fuerza solo si el tirador existe y todavía no disparó
             if (tirador && !tirador->YaDisparo()) {
                 float porcentaje = tirador->GetPorcentajeFuerza();
 
-                DrawText("POTENCIA:", 15, 190, 15, DARKGRAY);
+                DrawText("POTENCIA:", 20, 225, 15, RED);
 
                 // Rectángulo gris de fondo (el envase)
-                DrawRectangle(15, 210, 200, 20, LIGHTGRAY);
+                DrawRectangle(20, 245, 200, 20, LIGHTGRAY);
 
                 // Rectángulo rojo que crece multiplicando el ancho total (200) por el porcentaje (0.0 a 1.0)
-                DrawRectangle(15, 210, 200 * porcentaje, 20, RED);
+                DrawRectangle(20, 245, 200 * porcentaje, 20, RED);
 
                 // Borde negro para que quede prolijo
-                DrawRectangleLines(15, 210, 200, 20, BLACK);
+                DrawRectangleLines(20, 245, 200, 20, BLACK);
             }
 
         }
         else if (estadoActual == TERMINADO) {
 
-            DrawText("Se acabó el tiempo. Embocaste X pelotas. Presiona R para reiniciar.", 250, 15, 50, MAROON);
+            // Filtro semitransparente verde
+            DrawRectangle(0, 0, 1058, 992, Fade(PINK, 0.5f));
+
+            // Título 1
+            const char* titulo1 = "Se acabo el tiempo!";
+            int tam1 = 60;
+            int anchoTitulo1 = MeasureText(titulo1, tam1);
+            DrawText(titulo1, (1058 - anchoTitulo1) / 2, 180, tam1, ORANGE);
+
+            // Armo el mensaje dinámico dependiendo de los aciertos
+            const char* mensaje;
+            if (puntaje == 0) {
+                mensaje = "No embocaste ni una... Volve a intentarlo!";
+            }
+            else if (puntaje == 1) {
+                mensaje = "Embocaste una sola pelota... Bueno, algo es algo je";
+            }
+            else {
+                mensaje = TextFormat("Embocaste %d pelotas :D", puntaje);
+            }
+
+            // Mido y dibujo el mensaje elegido
+            int tam2 = 40;
+            int anchoMensaje = MeasureText(mensaje, tam2);
+            DrawText(mensaje, (1058 - anchoMensaje) / 2, 280, tam2, YELLOW);
+
+            // Título 2
+            const char* titulo2 = "Presiona R para reiniciar";
+            int tam3 = 30;
+            int anchoTitulo2 = MeasureText(titulo2, tam3);
+            DrawText(titulo2, (1058 - anchoTitulo2) / 2, 400, tam3, WHITE);
 
         };
 
@@ -298,12 +388,15 @@ void Juego::Reiniciar() {
     objetos.clear();
 
     // Creo el piso estático invisible a los pies del jugador). Ancho = 2000.
-    auto piso = std::make_unique<Borde>(mundo.get(), b2Vec2{ 500.0f, 715.0f }, 2000.0f, 20.0f, 0.0f);
+    auto piso = std::make_unique<Borde>(mundo.get(), b2Vec2{ 500.0f, 760.0f }, 2000.0f, 20.0f, 0.0f);
     objetos.emplace_back(std::move(piso));    
+
+    // Creo el reloj
+    cronometro = std::make_unique<Temporizador>(120.0f); // Timer de cuenta regresiva a 2 minutos
 
     ////// Instancio los objetos
     // Aro a la derecha 
-    aro = std::make_unique<Aro>(mundo.get(), b2Vec2{ 850.0f, 400.0f }, 1.5f, true);
+    aro = std::make_unique<Aro>(mundo.get(), b2Vec2{ 942.0f, 400.0f }, 1.6f, true);
 
     // Tirador a la izquierda en la línea de penal
     tirador = std::make_unique<Tirador>(mundo.get(), b2Vec2{ 360.0f, 600.0f }, 1.8f, "assets/img/texturaTirador01.png", "assets/img/texturaTirador02.png", "assets/img/texturaTirador03.png");
@@ -326,7 +419,7 @@ Juego::~Juego() {
     objetos.clear();
 
     // Descargo los recursos de Raylib
-    //UnloadMusicStream(musicaFondo);
+    UnloadMusicStream(musicaFondo);
     UnloadTexture(texturaFondo);
 
 }

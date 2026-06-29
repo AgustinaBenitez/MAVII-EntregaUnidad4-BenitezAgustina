@@ -36,6 +36,9 @@
     <ClCompile Include="Pelota.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Temporizador.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Juego.h">
@@ -54,6 +57,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Pelota.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Temporizador.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -31,7 +31,7 @@ Tirador::Tirador(b2World* mundo, b2Vec2 posicion, float escala, const char* ruta
 
     b2FixtureDef fixTirador;
     fixTirador.shape = &formaCaja;
-    fixTirador.friction = 0.5f;
+    fixTirador.friction = 0.0f; // Fricción nula para que la pelota pueda girar al salir
     fixTirador.restitution = 0.0f; // Cero rebote inicial
 
     cuerpo->CreateFixture(&fixTirador);
@@ -49,15 +49,15 @@ Tirador::~Tirador() {
 void Tirador::Cargar() {
 
     // Aumenta la fuerza mientras se mantiene la barra espaciadora.
-    if (!yaDisparo && fuerzaCargada < 3000.0f) {
-        fuerzaCargada += 50.0f;
+    if (!yaDisparo && fuerzaCargada < 4500.0f) {
+        fuerzaCargada += 75.0f;
     }
 
 }
 
 float Tirador::GetPorcentajeFuerza() {
     // Devuelve un valor entre 0.0 y 1.0
-    return fuerzaCargada / 3000.0f;
+    return fuerzaCargada / 4500.0f;
 }
 
 void Tirador::Disparar(b2Body* cuerpoPelota) {
@@ -66,8 +66,20 @@ void Tirador::Disparar(b2Body* cuerpoPelota) {
     if (!yaDisparo) {
 
         if (cuerpoPelota != nullptr) {
-            // Le paso el 70% de la fuerza al eje X para que viaje hacia adelante
-            cuerpoPelota->ApplyLinearImpulseToCenter(b2Vec2(fuerzaCargada * 0.7f, -fuerzaCargada), true);
+
+            // Obtengo el centro real de la pelota en el mundo
+            b2Vec2 centro = cuerpoPelota->GetWorldCenter();
+
+            // Sugerido por Gemini: Defino el punto de impacto un poco más abajo del centro
+            // Esto funciona como palanca para generar el backspin automáticamente
+            b2Vec2 puntoImpacto = b2Vec2(centro.x, centro.y + 15.0f);
+
+            // El vector de fuerza
+            b2Vec2 impulso = b2Vec2(fuerzaCargada * 0.7f, -fuerzaCargada);
+
+            // Aplico el impulso lineal pasándole el punto desplazado en lugar del centro
+            cuerpoPelota->ApplyLinearImpulse(impulso, puntoImpacto, true);
+
         }
 
         fuerzaCargada = 0.0f;

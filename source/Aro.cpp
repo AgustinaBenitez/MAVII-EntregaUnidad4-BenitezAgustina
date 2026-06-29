@@ -93,10 +93,10 @@ Aro::Aro(b2World* mundo, b2Vec2 posicion, float escala, bool empiezaSubiendo)
     b2Vec2 ejeMovimiento(0.0f, 1.0f);
     defJoint.Initialize(ancla, cuerpo, posicion, ejeMovimiento);
 
-    // Le habilito los topes. Le digo que suba hasta 80 píxeles por encima del ancla
+    // Le habilito los topes
     defJoint.enableLimit = true;
-    defJoint.lowerTranslation = -80.0f;
-    defJoint.upperTranslation = 40.0f;
+    defJoint.lowerTranslation = -90.0f; // para subir
+    defJoint.upperTranslation = 50.0f;  // para bajar
 
     // Le enciendo el motor y le doy fuerza
     defJoint.enableMotor = true;

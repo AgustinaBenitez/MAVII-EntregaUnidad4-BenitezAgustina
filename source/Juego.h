@@ -5,6 +5,7 @@
 #include "Tirador.h"
 #include "Pelota.h"
 #include "Borde.h"
+#include "Temporizador.h"
 
 #include <box2d.h>
 #include <vector>
@@ -39,7 +40,7 @@ private:
     std::vector<std::unique_ptr<ObjetoFisico>> objetos;
 
     // Recursos
-    //Music musicaFondo;
+    Music musicaFondo;
     Texture2D texturaFondo;
 
     // Listener
@@ -49,6 +50,7 @@ private:
     std::unique_ptr<Tirador> tirador;
     std::unique_ptr<Aro> aro;
     Pelota* pelotaPrincipal; // Puntero para rastrear la pelota principal
+    std::unique_ptr<Temporizador> cronometro; // Reloj
 
     // Para mostrar la info en pantalla
     bool modoDebug = false;

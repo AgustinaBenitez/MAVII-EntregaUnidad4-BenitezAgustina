@@ -159,6 +159,7 @@ xcopy "$(SolutionDir)..\lib\vld\64-bit\Microsoft.DTfW.DHL.manifest" "$(OutDir)" 
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ObjetoFisico.cpp" />
     <ClCompile Include="Pelota.cpp" />
+    <ClCompile Include="Temporizador.cpp" />
     <ClCompile Include="Tirador.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -167,6 +168,7 @@ xcopy "$(SolutionDir)..\lib\vld\64-bit\Microsoft.DTfW.DHL.manifest" "$(OutDir)" 
     <ClInclude Include="Juego.h" />
     <ClInclude Include="ObjetoFisico.h" />
     <ClInclude Include="Pelota.h" />
+    <ClInclude Include="Temporizador.h" />
     <ClInclude Include="Tirador.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
