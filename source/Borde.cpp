@@ -19,3 +19,7 @@ Borde::Borde(b2World* mundo, b2Vec2 posicion, float w, float h, float angulo)
 }
 
 Borde::~Borde() {}
+
+void Borde::Dibujar() {
+    // Queda vacío porque el borde es invisible
+}

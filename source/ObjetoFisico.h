@@ -20,7 +20,4 @@ public:
     virtual void Dibujar() = 0;
     virtual void DibujarDebug() {} // Para mostrar interacciones e indicadores visuales
 
-    //virtual void Reaccion() {} // Para que las clases hijas reaccionen
-    //virtual bool Victoria() { return false; } // Para la condición de victoria
-
 };

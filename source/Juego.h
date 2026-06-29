@@ -3,6 +3,8 @@
 #include "ObjetoFisico.h"
 #include "Aro.h"
 #include "Tirador.h"
+#include "Pelota.h"
+#include "Borde.h"
 
 #include <box2d.h>
 #include <vector>
@@ -46,10 +48,13 @@ private:
     // Objetos
     std::unique_ptr<Tirador> tirador;
     std::unique_ptr<Aro> aro;
-    //ObjetoFisico* pelotaPrincipal; // Puntero para rastrear la pelota principal
+    Pelota* pelotaPrincipal; // Puntero para rastrear la pelota principal
 
-    // Para mostrar la info solicitada en pantalla sin ensuciar la pantalla de juego
+    // Para mostrar la info en pantalla
     bool modoDebug = false;
+    int puntaje;
+
+    bool puedeRecargar;
 
 public:
 

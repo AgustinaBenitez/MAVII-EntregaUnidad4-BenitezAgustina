@@ -7,10 +7,13 @@ private:
 
     float ancho;
     float alto;
+
     Texture2D texturaTirador01;
     Texture2D texturaTirador02;
     Texture2D texturaTirador03;
 
+    int estadoAnimacion; // 1 = Listo, 2 = Saltando, 3 = Reposo
+    float timerSalto;
     float fuerzaCargada;
     bool yaDisparo;
 
@@ -21,10 +24,11 @@ public:
 
     void Dibujar() override;
     void Cargar();
-    void Disparar(b2Body* cuerpoPelota);
-
+    float GetPorcentajeFuerza();
+    void Disparar(b2Body* cuerpoPelota);   
     bool YaDisparo() { return yaDisparo; }
-
+    void Actualizar();
+    void ReiniciarTiro();
     void DibujarDebug() override;
 
 };
