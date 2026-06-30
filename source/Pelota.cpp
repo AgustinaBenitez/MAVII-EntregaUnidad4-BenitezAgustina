@@ -20,9 +20,6 @@ Pelota::Pelota(b2World* mundo, b2Vec2 posicion, float r, Color col)
 
     cuerpo->CreateFixture(&fixPelota);
 
-    // Lo marco como proyectil rápido para que no buguee las colisiones --- Sugerencia de Gemini
-    //cuerpo->SetBullet(true);
-
 }
 
 Pelota::~Pelota() {

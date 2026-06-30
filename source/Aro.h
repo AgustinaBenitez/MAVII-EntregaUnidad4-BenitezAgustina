@@ -6,7 +6,6 @@ class Aro : public ObjetoFisico {
 private:
 
     float ancho;
-    float alto;
     Texture2D texturaAro;
     b2PrismaticJoint* joint;
     float velocidad;
@@ -16,10 +15,10 @@ public:
     Aro(b2World* mundo, b2Vec2 posicion, float escala, bool empiezaSubiendo);
     ~Aro();
 
+    float alto;
+
     void Dibujar() override;
-
     void Actualizar();
-
     void DibujarDebug();
 
 };

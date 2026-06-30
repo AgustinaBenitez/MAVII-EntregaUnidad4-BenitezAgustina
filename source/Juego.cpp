@@ -2,7 +2,11 @@
 
 #include <raylib.h>
 
-// Implementación del escuchador
+// Implementación de los escuchadores
+void EscuchadorColisiones::SetSonidoPelota(Sound* sonido) {
+    sonidoPelota = sonido;
+}
+
 EscuchadorColisiones::EscuchadorColisiones() {}
 
 void EscuchadorColisiones::BeginContact(b2Contact* contacto) {
@@ -16,10 +20,18 @@ void EscuchadorColisiones::BeginContact(b2Contact* contacto) {
     ObjetoFisico* objB = reinterpret_cast<ObjetoFisico*>(fixB->GetBody()->GetUserData().pointer);
 
     // Identifico quién es quién usando dynamic_cast
+    
     // Identifico a la Pelota
     Pelota* pelota = dynamic_cast<Pelota*>(objA);
     if (pelota == nullptr) {
         pelota = dynamic_cast<Pelota*>(objB);
+    }
+
+    // Si la pelota existe y ninguna de las dos cosas que chocaron es un sensor (para no hacer ruido al pasar limpiamente por el aro)
+    if (pelota != nullptr && !fixA->IsSensor() && !fixB->IsSensor()) {
+        if (sonidoPelota != nullptr) {
+            PlaySound(*sonidoPelota); // Me ayudó Gemini
+        }
     }
 
     // Identifico al Aro
@@ -38,25 +50,44 @@ void EscuchadorColisiones::BeginContact(b2Contact* contacto) {
     if (pelota != nullptr && aro != nullptr) {
 
         bool tocoSensor = false;
+        b2Fixture* fixtureSensor = nullptr; // Guardo el puntero del sensor para medirlo
 
         // Reviso si la fixture A era el sensor del aro
         if (fixA->GetBody() == aro->GetCuerpo() && fixA->IsSensor()) {
             tocoSensor = true;
+            fixtureSensor = fixA;
         }
         // Si no, reviso si la fixture B era el sensor del aro
         else if (fixB->GetBody() == aro->GetCuerpo() && fixB->IsSensor()) {
             tocoSensor = true;
+            fixtureSensor = fixB;
         }
 
         if (tocoSensor) {
-            // Obtengo la velocidad lineal de la pelota en el momento del impacto
+
+            // Obtengo el ID del fixture que se tocó
+            uintptr_t idSensor = fixtureSensor->GetUserData().pointer;
+
+            // Obtengo la velocidad lineal de la pelota para verificar que esté bajando
             b2Vec2 velPelota = pelota->GetCuerpo()->GetLinearVelocity();
 
-            // Si la velocidad en Y es positiva, significa que viene cayendo de arriba hacia abajo
-            if (velPelota.y > 0.0f) {
-                pelota->MarcarAnotacion();
+            if (idSensor == 1) {
+                // Boca del aro
+                // Solo activo si la pelota viene bajando (velocidad Y positiva)
+                if (velPelota.y > 0.0f) {
+                    pelota->SetCruzandoAro(true);
+                }
+            }
+            else if (idSensor == 2) {
+                // Si ya cruzó el aro, registro la anotación.
+                // Quito la restricción de velocidad Y para asegurar el registro.
+                if (pelota->GetCruzandoAro()) {
+                    pelota->MarcarAnotacion();
+                    pelota->SetCruzandoAro(false); // Reseteo al anotar
+                }
             }
         }
+
     }
 
     // Si chocaron la Pelota y el Borde (Piso)
@@ -93,8 +124,14 @@ void Juego::Iniciar() {
     musicaFondo.looping = true;     // Para que se repita infinitamente
     PlayMusicStream(musicaFondo);   // Le doy Play solo acá (una sola vez)
 
-    // Configuro el escuchador de colisiones
+    // Cargo los sonidos
+    sonidoAro = LoadSound("assets/audio/sonidoAro.wav");
+    sonidoPelota = LoadSound("assets/audio/sonidoPelota.wav");
+    sonidoFin = LoadSound("assets/audio/sonidoFin.mp3");
+
+    // Configuro el escuchador de colisiones y le inyecto el sonido de la pelota
     escuchador = std::make_unique<EscuchadorColisiones>();
+    escuchador->SetSonidoPelota(&sonidoPelota);
     mundo->SetContactListener(escuchador.get());
 
     // Cargo todos los objetos
@@ -125,7 +162,7 @@ void Juego::Actualizar() {
         if (cronometro->SeAcaboElTiempo() && estadoActual == JUGANDO) {
 
             estadoActual = TERMINADO;
-            //PlaySound(sonidoFin);
+            PlaySound(sonidoFin);
             return;
 
         }
@@ -156,25 +193,17 @@ void Juego::Actualizar() {
 
         // Para nueva pelota
         if (IsKeyPressed(KEY_N)) {
-            // Exigimos que el tirador exista, que haya disparado, que exista la pelota Y que se pueda recargar (tocó piso)
-            if (tirador && tirador->YaDisparo() && pelotaPrincipal && puedeRecargar) {
+            
+            if (tirador && tirador->YaDisparo() && pelotaPrincipal) {
 
-                // Reseteo las fuerzas de Box2D para que no siga cayendo
                 pelotaPrincipal->GetCuerpo()->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
                 pelotaPrincipal->GetCuerpo()->SetAngularVelocity(0.0f);
-
-                // La teletransportamos de nuevo a la mano
                 pelotaPrincipal->GetCuerpo()->SetTransform(b2Vec2(400.0f, 475.0f), 0.0f);
 
-                // Vuelvo al jugador a su estado inicial
                 tirador->ReiniciarTiro();
-
-                // Reseteo los estados lógicos de la pelota (sensor, piso, contabilizada)
                 pelotaPrincipal->ResetearEstados();
-
-                // Bloqueo la recarga para que no pueda apretar la 'N' 80 veces seguidas
-                puedeRecargar = false;
             }
+
         }
 
         
@@ -182,6 +211,7 @@ void Juego::Actualizar() {
             // Si pasó por el aro y todavía no sumó
             if (pelotaPrincipal->Anoto() && !pelotaPrincipal->FueContabilizada()) {
                 puntaje++;
+                PlaySound(sonidoAro);
                 pelotaPrincipal->SetContabilizada(true);
 
                 // Le mato la velocidad horizontal (X = 0) para que caiga recta
@@ -290,13 +320,6 @@ void Juego::Renderizar() {
             int anchoPuntaje = MeasureText(textoPuntaje, 40);
             DrawText(textoPuntaje, (1058 - anchoPuntaje) / 2, 850, 40, YELLOW);
 
-            // Aviso al jugador que puede acceder a una nueva pelota
-            if (puedeRecargar) {
-                const char* textoRecarga = "PRESIONA 'N' PARA NUEVA PELOTA";
-                int anchoRecarga = MeasureText(textoRecarga, 25);
-                DrawText(textoRecarga, (1058 - anchoRecarga) / 2, 900, 25, DARKPURPLE);
-            }
-
             // Dibujo la barra de fuerza solo si el tirador existe y todavía no disparó
             if (tirador && !tirador->YaDisparo()) {
                 float porcentaje = tirador->GetPorcentajeFuerza();
@@ -334,7 +357,7 @@ void Juego::Renderizar() {
             const char* titulo1 = "Se acabo el tiempo!";
             int tam1 = 60;
             int anchoTitulo1 = MeasureText(titulo1, tam1);
-            DrawText(titulo1, (1058 - anchoTitulo1) / 2, 180, tam1, ORANGE);
+            DrawText(titulo1, (1058 - anchoTitulo1) / 2, 150, tam1, ORANGE);
 
             // Armo el mensaje dinámico dependiendo de los aciertos
             const char* mensaje;
@@ -351,7 +374,7 @@ void Juego::Renderizar() {
             // Mido y dibujo el mensaje elegido
             int tam2 = 40;
             int anchoMensaje = MeasureText(mensaje, tam2);
-            DrawText(mensaje, (1058 - anchoMensaje) / 2, 280, tam2, YELLOW);
+            DrawText(mensaje, (1058 - anchoMensaje) / 2, 250, tam2, YELLOW);
 
             // Título 2
             const char* titulo2 = "Presiona R para reiniciar";
@@ -424,5 +447,8 @@ Juego::~Juego() {
     // Descargo los recursos de Raylib
     UnloadMusicStream(musicaFondo);
     UnloadTexture(texturaFondo);
+    UnloadSound(sonidoAro);
+    UnloadSound(sonidoPelota);
+    UnloadSound(sonidoFin);
 
 }

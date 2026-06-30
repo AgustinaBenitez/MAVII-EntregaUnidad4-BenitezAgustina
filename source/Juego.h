@@ -14,9 +14,14 @@
 // Escuchador de colisiones
 class EscuchadorColisiones : public b2ContactListener {
 
+private:
+
+    Sound* sonidoPelota = nullptr; // Puntero para acceder al sonido desde acá
+
 public:
 
     EscuchadorColisiones();
+    void SetSonidoPelota(Sound* sonido); // Método para ponerle el sonido
     void BeginContact(b2Contact* contacto) override;
 
 };
@@ -42,6 +47,9 @@ private:
     // Recursos
     Music musicaFondo;
     Texture2D texturaFondo;
+    Sound sonidoAro;
+    Sound sonidoPelota;
+    Sound sonidoFin;
 
     // Listener
     std::unique_ptr<EscuchadorColisiones> escuchador;

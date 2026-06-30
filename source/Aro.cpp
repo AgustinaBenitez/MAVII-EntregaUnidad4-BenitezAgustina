@@ -39,10 +39,24 @@ Aro::Aro(b2World* mundo, b2Vec2 posicion, float escala, bool empiezaSubiendo)
     fixTablero.restitution = 0.2f;
     cuerpo->CreateFixture(&fixTablero);
 
-    // El aro (Sensor chato)
-    float anchoSensor = ancho * 0.25f;
-    float altoSensor = 10.0f;
-    b2Vec2 centroSensor(-ancho * 0.35f, alto * 0.1f); // Desplazado a la izquierda
+    // Sugerido por Gemini: Punta del aro (Colisión física sólida para el borde delantero)
+    float radioPunta = 5.0f;
+    b2Vec2 centroPunta(-ancho * 0.48f, alto * 0.1f); // Justo en la punta visual
+
+    b2CircleShape formaPunta;
+    formaPunta.m_p = centroPunta;
+    formaPunta.m_radius = radioPunta;
+
+    b2FixtureDef fixPunta;
+    fixPunta.shape = &formaPunta;
+    fixPunta.density = 1.0f;
+    fixPunta.restitution = 0.1f;
+    cuerpo->CreateFixture(&fixPunta);
+
+    // El sensor de la red
+    float anchoSensor = ancho * 0.15f;
+    float altoSensor = 20.0f;
+    b2Vec2 centroSensor(-ancho * 0.32f, alto * 0.35f);
 
     b2PolygonShape formaSensor;
     formaSensor.SetAsBox(anchoSensor / 2.0f, altoSensor / 2.0f, centroSensor, 0.0f);
@@ -50,7 +64,22 @@ Aro::Aro(b2World* mundo, b2Vec2 posicion, float escala, bool empiezaSubiendo)
     b2FixtureDef fixSensor;
     fixSensor.shape = &formaSensor;
     fixSensor.isSensor = true;
+    fixSensor.userData.pointer = 2;
     cuerpo->CreateFixture(&fixSensor);
+
+    // Sensor de Entrada en la boca del aro
+    float anchoGate = ancho * 0.15f;
+    float altoGate = 15.0f;
+    b2Vec2 centroGate(-ancho * 0.20f, alto * 0.05f);
+
+    b2PolygonShape formaGate;
+    formaGate.SetAsBox(anchoGate / 2.0f, altoGate / 2.0f, centroGate, 0.0f);
+
+    b2FixtureDef fixGate;
+    fixGate.shape = &formaGate;
+    fixGate.isSensor = true;
+    fixGate.userData.pointer = 1;
+    cuerpo->CreateFixture(&fixGate);
 
     // Creo un ancla estática invisible en la misma posición de origen
     b2BodyDef defAncla;
@@ -144,13 +173,11 @@ void Aro::DibujarDebug() {
 
     float anchoTablero = ancho * 0.15f;
     float altoTablero = alto * 0.5f;
-    // Acá también cambiamos el multiplicador a 0.10f
     DrawRectangleLines(pos.x + (ancho * -0.10f) - (anchoTablero / 2), pos.y - 30.0f - (altoTablero / 2), anchoTablero, altoTablero, RED);
 
     // Sensor Red (Naranja)
-    float anchoSensor = ancho * 0.25f;
+    float anchoSensor = ancho * 0.15f;
     float altoSensor = 10.0f;
-    // Y acá cambiamos a 0.35f
-    DrawRectangleLines(pos.x - (ancho * 0.35f) - (anchoSensor / 2), pos.y + (alto * 0.1f) - (altoSensor / 2), anchoSensor, altoSensor, ORANGE);
+    DrawRectangleLines(pos.x - (ancho * 0.32f) - (anchoSensor / 2), pos.y + (alto * 0.35f) - (altoSensor / 2), anchoSensor, altoSensor, ORANGE);
 
 }
