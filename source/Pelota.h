@@ -19,7 +19,6 @@ public:
     ~Pelota();
 
     void Dibujar() override;
-    void DibujarDebug() override;
 
     void MarcarAnotacion() { tocoSensor = true; }
     bool Anoto() { return tocoSensor; }

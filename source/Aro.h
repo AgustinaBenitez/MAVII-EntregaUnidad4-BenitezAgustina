@@ -19,6 +19,5 @@ public:
 
     void Dibujar() override;
     void Actualizar();
-    void DibujarDebug();
 
 };

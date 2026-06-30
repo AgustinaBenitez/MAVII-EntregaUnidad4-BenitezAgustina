@@ -239,11 +239,6 @@ void Juego::Actualizar() {
         Reiniciar();
     }
 
-    // Para mostrar info en pantalla
-    if (IsKeyPressed(KEY_I)) {
-        modoDebug = !modoDebug;
-    }
-
 }
 
 void Juego::Renderizar() {
@@ -304,7 +299,6 @@ void Juego::Renderizar() {
             DrawText("Mantener y soltar ESP: Lanzar", 20, 110, 20, LIGHTGRAY);
             DrawText("N: Nueva pelota", 20, 135, 20, LIGHTGRAY);
             DrawText("R: Reiniciar", 20, 160, 20, LIGHTGRAY);
-            DrawText("I: Mostrar info", 20, 185, 20, LIGHTGRAY);
 
             // Informo objetivo
             const char* obj1 = "Encesta la mayor cantidad";
@@ -383,19 +377,6 @@ void Juego::Renderizar() {
             DrawText(titulo2, (1058 - anchoTitulo2) / 2, 400, tam3, WHITE);
 
         };
-
-
-    // Mostrando info
-    if (modoDebug) {
-
-        if (aro) aro->DibujarDebug();
-        if (tirador) tirador->DibujarDebug();
-
-        //for (const auto& obj : objetos) {
-            //obj->DibujarDebug();
-        //}
-
-    }
 
     EndDrawing();
 

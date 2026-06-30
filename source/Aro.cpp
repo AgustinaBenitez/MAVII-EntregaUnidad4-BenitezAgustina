@@ -146,38 +146,3 @@ void Aro::Dibujar() {
     DrawTexturePro(texturaAro, origen, destino, ejeRotacion, 0.0f, WHITE);
 
 }
-
-void Aro::DibujarDebug() {
-
-    b2Vec2 ancla = joint->GetAnchorA();
-    float inferior = joint->GetLowerLimit();
-    float superior = joint->GetUpperLimit();
-
-    // Como viaja en el eje Y, sumo los límites a la posición original del ancla
-    Vector2 inicio = { ancla.x, ancla.y + inferior };
-    Vector2 fin = { ancla.x, ancla.y + superior };
-
-    // Línea de riel de movimiento con punto de anclaje
-    DrawLineEx(inicio, fin, 4.0f, DARKGREEN);
-    DrawCircle(ancla.x, ancla.y, 4.0f, BLUE);
-
-    // Escribo la info
-    DrawText("Prismatic Joint", ancla.x - 120, ancla.y - 65, 15, BLUE);
-    DrawText("Restringe el movimiento a una unica direccion", ancla.x - 120, ancla.y - 45, 10, BLACK);
-    DrawText("Cuerpo Dinamico", ancla.x - 120, ancla.y - 30, 12, BLUE);
-
-
-    // Debug para mí
-
-    b2Vec2 pos = cuerpo->GetPosition();
-
-    float anchoTablero = ancho * 0.15f;
-    float altoTablero = alto * 0.5f;
-    DrawRectangleLines(pos.x + (ancho * -0.10f) - (anchoTablero / 2), pos.y - 30.0f - (altoTablero / 2), anchoTablero, altoTablero, RED);
-
-    // Sensor Red (Naranja)
-    float anchoSensor = ancho * 0.15f;
-    float altoSensor = 10.0f;
-    DrawRectangleLines(pos.x - (ancho * 0.32f) - (anchoSensor / 2), pos.y + (alto * 0.35f) - (altoSensor / 2), anchoSensor, altoSensor, ORANGE);
-
-}

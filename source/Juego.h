@@ -61,7 +61,6 @@ private:
     std::unique_ptr<Temporizador> cronometro; // Reloj
 
     // Para mostrar la info en pantalla
-    bool modoDebug = false;
     int puntaje;
 
     bool puedeRecargar;

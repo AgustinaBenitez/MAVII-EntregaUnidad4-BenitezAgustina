@@ -138,14 +138,3 @@ void Tirador::ReiniciarTiro() {
     estadoAnimacion = 1;
 
 }
-
-void Tirador::DibujarDebug() {
-
-    b2Vec2 pos = cuerpo->GetPosition();
-
-    // Le dibujo un rectángulo fucsia alrededor y el texto explicativo
-    DrawRectangleLines(pos.x - ancho / 2.0f, pos.y - alto / 2.0f, ancho, alto, PURPLE);
-    DrawText("Impulso Lineal", pos.x + 35, pos.y - 10, 15, PURPLE);
-    DrawText("Aplica fuerza en Y", pos.x + 35, pos.y + 5, 10, BLACK);
-
-}

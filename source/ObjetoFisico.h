@@ -18,6 +18,5 @@ public:
     b2Body* GetCuerpo() { return cuerpo; }
 
     virtual void Dibujar() = 0;
-    virtual void DibujarDebug() {} // Para mostrar interacciones e indicadores visuales
 
 };

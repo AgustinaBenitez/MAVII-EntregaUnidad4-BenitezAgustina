@@ -29,6 +29,5 @@ public:
     bool YaDisparo() { return yaDisparo; }
     void Actualizar();
     void ReiniciarTiro();
-    void DibujarDebug() override;
 
 };
